@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Toll-Naka</string>
+    <string name="title_activity_main">MainActivity</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false"> AIzaSyAaFDTip84Jn6bG6QdY241ot3ZzmJEv1SE</string>
+    <string name="action_settings">Settings</string>
+</resources>
