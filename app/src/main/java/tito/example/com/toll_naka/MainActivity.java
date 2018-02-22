@@ -27,8 +27,6 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
-
-import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
@@ -42,12 +40,19 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Locale;
 
 import tito.example.com.toll_naka.Model.Tolls;
@@ -57,7 +62,6 @@ public class MainActivity extends FragmentActivity
         implements NavigationView.OnNavigationItemSelectedListener,OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,LocationListener{
     FirebaseDatabase database;
     DatabaseReference databaseReference;
-   FirebaseRecyclerAdapter<Tolls,TollViewHolder> firebaseRecyclerAdapter;
     private GoogleMap mMap;
     GoogleApiClient mGoogleApiClient;
     Location mLastLocation;
@@ -66,6 +70,8 @@ public class MainActivity extends FragmentActivity
     String citynam;
     RecyclerView recyclerView;
     RecyclerView.LayoutManager layoutManager;
+    List<Toll> tollList;
+    TollAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,6 +87,8 @@ public class MainActivity extends FragmentActivity
         recyclerView.setHasFixedSize(false);
         layoutManager=new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
+
+        tollList=new ArrayList<>();
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 
@@ -259,20 +267,41 @@ public class MainActivity extends FragmentActivity
         }
         citynam = addresses.get(0).getLocality();
         listtolls(citynam);
-        Log.d("teno",citynam);
     }
 
     private void listtolls(String citynam) {
-        firebaseRecyclerAdapter=new FirebaseRecyclerAdapter<Tolls, TollViewHolder>(Tolls.class,R.layout.single_item,TollViewHolder.class,databaseReference.orderByChild("cityname").equalTo(citynam)) {
-            @Override
-            protected void populateViewHolder(TollViewHolder viewHolder, Tolls model, int position) {
-                Log.d("tito","ere");
-                viewHolder.name.setText(model.getName());
-                viewHolder.address.setText(model.getCityname());
-                Picasso.with(getApplicationContext()).load(model.getImage()).into(viewHolder.img);
-            }
-        };
-        recyclerView.setAdapter(firebaseRecyclerAdapter);
+        Log.d("here","HERE");
+        databaseReference.orderByChild("cityname").equalTo(citynam).addValueEventListener(new ValueEventListener() {
+    @Override
+    public void onDataChange(DataSnapshot dataSnapshot) {
+        for(DataSnapshot dataSnapshot1:dataSnapshot.getChildren())
+        {
+            Toll toll=dataSnapshot1.getValue(Toll.class);
+            tollList.add(toll);
+        }
+        Log.d("size",tollList.size()+"");
+        addtollstomap(tollList);
+        adapter=new TollAdapter(MainActivity.this,tollList);
+        recyclerView.setAdapter(adapter);
+    }
+
+    @Override
+    public void onCancelled(DatabaseError databaseError) {
+
+    }
+});
+
+    }
+
+    private void addtollstomap(List<Toll> tollList) {
+        MarkerOptions markerOptions = new MarkerOptions();
+       for(int i=0;i<tollList.size();i++) {
+         LatLng latLng=new LatLng(Double.parseDouble(tollList.get(i).getLat()),Double.parseDouble(tollList.get(i).getLng()));
+           markerOptions.position(latLng);
+           markerOptions.title(tollList.get(i).getName());
+           markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+           mCurrLocationMarker = mMap.addMarker(markerOptions);
+       }
     }
 
     @Override
