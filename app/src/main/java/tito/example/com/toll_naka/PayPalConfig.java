@@ -5,5 +5,5 @@ package tito.example.com.toll_naka;
  */
 
 public class PayPalConfig {
-    public static final String PAYPAL_CLIENT_ID = "AfqsTmEcFL6jLOWndBLulEg1XZGH70KwoPKHubRS1x1cmnKg7r_6E_MJSpPrUso0RsG1oaqdvaa_iVtU";
+    public static final String PAYPAL_CLIENT_ID = "";
 }
